@@ -64,12 +64,12 @@ class FloatingOverlayService : Service() {
         btnMode = floatingView.findViewById(R.id.btn_mode)
 
         btnStart.setOnClickListener {
-            KingAccessibilityService.isRunning = true
+            KingAccessibilityService.instance?.startAutomation()
             tvStatus.text = "Running (${KingAccessibilityService.currentMode})..."
         }
 
         btnStop.setOnClickListener {
-            KingAccessibilityService.isRunning = false
+            KingAccessibilityService.instance?.stopAutomation()
             tvStatus.text = "Stopped"
         }
 

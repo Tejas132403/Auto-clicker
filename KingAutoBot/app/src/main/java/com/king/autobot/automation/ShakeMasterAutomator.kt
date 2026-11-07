@@ -70,7 +70,7 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
         val bonusBtn = findButton(rootNode, setOf("add bonus", "bonus", "claim", "continue", "done", "next", "ok"))
         if (bonusBtn != null) {
             Log.d(TAG, "Tapping bonus/claim button: ${bonusBtn.text}")
-            GestureUtils.clickNode(bonusBtn)
+            GestureUtils.clickNode(service, bonusBtn)
             return
         }
 
@@ -78,7 +78,7 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
         val videoBtn = findButton(rootNode, setOf("watch video", "watch", "play video"))
         if (videoBtn != null) {
             Log.d(TAG, "Tapping watch video button")
-            GestureUtils.clickNode(videoBtn)
+            GestureUtils.clickNode(service, videoBtn)
             return
         }
     }
@@ -113,7 +113,8 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
             val targetNode = findBestOptionNode(options, cachedAns)
             if (targetNode != null) {
                 Log.d(TAG, "[0ms CACHE] Answering '$qText' -> '$cachedAns'")
-                GestureUtils.clickNode(targetNode)
+                GestureUtils.clickNode(service, targetNode)
+                service.updateWidgetStatus("Cached: $cachedAns")
                 return
             }
         }
@@ -127,7 +128,7 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
                 val targetNode = findBestOptionNode(options, aiAns)
                 if (targetNode != null) {
                     Log.d(TAG, "[GEMINI ANSWER] Clicked: '$aiAns'")
-                    GestureUtils.clickNode(targetNode)
+                    GestureUtils.clickNode(service, targetNode)
                     service.updateWidgetStatus("Answered: $aiAns")
                 }
             }
@@ -139,13 +140,13 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
         // 1. Give answer
         val answer = AnswerCacheManager.lookup(qText) ?: optTexts.firstOrNull() ?: ""
         val targetNode = findBestOptionNode(options, answer)
-        if (targetNode != null) GestureUtils.clickNode(targetNode)
+        if (targetNode != null) GestureUtils.clickNode(service, targetNode)
 
         // 2. Wait 1.5s then tap 'Add Bonus'
         handler.postDelayed({
             val root = service.rootInActiveWindow ?: return@postDelayed
             val bonusBtn = findButton(root, setOf("add bonus", "bonus"))
-            if (bonusBtn != null) GestureUtils.clickNode(bonusBtn)
+            if (bonusBtn != null) GestureUtils.clickNode(service, bonusBtn)
 
             // 3. Go to Home Screen after ad starts
             handler.postDelayed({
@@ -184,7 +185,7 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
         val closeBtn = findCloseButton(rootNode)
         if (closeBtn != null) {
             Log.d(TAG, "Closing ad via close button node")
-            GestureUtils.clickNode(closeBtn)
+            GestureUtils.clickNode(service, closeBtn)
             return
         }
 
@@ -195,7 +196,7 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
         GestureUtils.tap(service, trX, trY) {
             handler.postDelayed({
                 service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
-            }, 500)
+            }, 600)
         }
     }
 
@@ -221,33 +222,55 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
         val allTexts = mutableListOf<AccessibilityNodeInfo>()
         collectTextNodes(root, allTexts)
         for (n in allTexts) {
+            val resId = n.viewIdResourceName ?: ""
+            if (resId.contains("tvQuestion")) return n
+        }
+        for (n in allTexts) {
             val t = n.text?.toString()?.trim() ?: ""
-            if (t.endsWith("?") || t.length in 12..120) {
-                val optCount = findOptionNodes(root).size
-                if (optCount in 2..4) return n
+            if (t.endsWith("?") || t.length in 12..150) {
+                return n
             }
         }
         return null
     }
 
     private fun findOptionNodes(root: AccessibilityNodeInfo): List<AccessibilityNodeInfo> {
+        val textNodes = mutableListOf<AccessibilityNodeInfo>()
+        collectTextNodes(root, textNodes)
+
+        // 1. Direct match by id 'tvOptionText'
+        val byId = textNodes.filter { it.viewIdResourceName?.contains("tvOptionText") == true }
+        if (byId.isNotEmpty()) return byId
+
+        // 2. Clickable items that contain text
         val clickable = mutableListOf<AccessibilityNodeInfo>()
         collectClickableNodes(root, clickable)
-        return clickable.filter {
-            val t = it.text?.toString()?.trim() ?: ""
-            t.isNotEmpty() && !t.lowercase().contains("bonus") && !t.lowercase().contains("video")
+        val candidateNodes = mutableListOf<AccessibilityNodeInfo>()
+        for (c in clickable) {
+            val childTexts = mutableListOf<String>()
+            collectAllText(c, childTexts)
+            val fullText = childTexts.joinToString(" ").trim()
+            if (fullText.isNotEmpty() && !fullText.lowercase().contains("bonus") && !fullText.lowercase().contains("video") && !fullText.lowercase().contains("task")) {
+                candidateNodes.add(c)
+            }
         }
+        return candidateNodes
     }
 
     private fun findBestOptionNode(options: List<AccessibilityNodeInfo>, answer: String): AccessibilityNodeInfo? {
         val normAns = answer.lowercase().trim()
         for (opt in options) {
             val optT = opt.text?.toString()?.lowercase()?.trim() ?: ""
-            if (optT == normAns || optT.contains(normAns) || normAns.contains(optT)) {
-                return opt
-            }
+            val allOptText = mutableListOf<String>()
+            opt.parent?.let { collectAllText(it, allOptText) } ?: collectAllText(opt, allOptText)
+            val combined = allOptText.joinToString(" ").lowercase()
+
+            if (optT == normAns || optT.contains(normAns) || normAns.contains(optT)) return opt
+            if (combined.contains(normAns) || normAns.contains(combined)) return opt
+
+            if (normAns.length == 1 && combined.contains("${normAns}.")) return opt
         }
-        return null
+        return options.firstOrNull()
     }
 
     private fun findButton(root: AccessibilityNodeInfo, words: Set<String>): AccessibilityNodeInfo? {

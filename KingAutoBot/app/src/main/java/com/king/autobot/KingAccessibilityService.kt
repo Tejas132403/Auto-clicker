@@ -8,6 +8,11 @@ import com.king.autobot.ai.AnswerCacheManager
 import com.king.autobot.ai.GeminiApiClient
 import com.king.autobot.automation.ShakeMasterAutomator
 import com.king.autobot.automation.UniversalAiAutomator
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class KingAccessibilityService : AccessibilityService() {
     companion object {
@@ -19,6 +24,8 @@ class KingAccessibilityService : AccessibilityService() {
 
     private lateinit var shakeMasterAutomator: ShakeMasterAutomator
     private lateinit var universalAiAutomator: UniversalAiAutomator
+    private val serviceScope = CoroutineScope(Dispatchers.Main)
+    private var scanJob: Job? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -30,6 +37,34 @@ class KingAccessibilityService : AccessibilityService() {
         universalAiAutomator = UniversalAiAutomator(this)
 
         updateWidgetStatus("Service Ready! Tap START")
+    }
+
+    fun startAutomation() {
+        isRunning = true
+        scanJob?.cancel()
+        scanJob = serviceScope.launch {
+            while (isRunning) {
+                try {
+                    val root = rootInActiveWindow
+                    if (root != null) {
+                        val pkg = root.packageName?.toString() ?: ""
+                        when (currentMode) {
+                            "QUIZ" -> shakeMasterAutomator.onScreenUpdated(root, pkg)
+                            "UNIVERSAL" -> universalAiAutomator.onScreenUpdated(root, pkg)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error in periodic scan: ${e.message}")
+                }
+                delay(1200)
+            }
+        }
+    }
+
+    fun stopAutomation() {
+        isRunning = false
+        scanJob?.cancel()
+        scanJob = null
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -47,13 +82,13 @@ class KingAccessibilityService : AccessibilityService() {
 
     override fun onInterrupt() {
         Log.w(TAG, "KingAccessibilityService interrupted")
-        isRunning = false
+        stopAutomation()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         instance = null
-        isRunning = false
+        stopAutomation()
     }
 
     fun updateWidgetStatus(status: String) {

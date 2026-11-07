@@ -57,8 +57,8 @@ object GestureUtils {
         }, null)
     }
 
-    fun clickNode(node: AccessibilityNodeInfo): Boolean {
-        // Try direct click
+    fun clickNode(service: AccessibilityService, node: AccessibilityNodeInfo): Boolean {
+        // Try direct click action
         if (node.isClickable && node.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
             return true
         }
@@ -69,6 +69,13 @@ object GestureUtils {
                 return true
             }
             parent = parent.parent
+        }
+        // Fallback to coordinate tap dispatch
+        val rect = Rect()
+        node.getBoundsInScreen(rect)
+        if (rect.width() > 0 && rect.height() > 0) {
+            tap(service, rect.centerX().toFloat(), rect.centerY().toFloat())
+            return true
         }
         return false
     }

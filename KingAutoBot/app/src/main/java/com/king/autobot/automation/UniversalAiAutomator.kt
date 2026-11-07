@@ -43,7 +43,7 @@ class UniversalAiAutomator(private val service: KingAccessibilityService) {
         if (cachedTarget != null && cachedTarget in clickableNodes.indices) {
             Log.d(TAG, "[0ms Universal Cache] Clicking element #$cachedTarget on $currentPkg")
             service.updateWidgetStatus("Clicking cached element...")
-            GestureUtils.clickNode(clickableNodes[cachedTarget])
+            GestureUtils.clickNode(service, clickableNodes[cachedTarget])
             return
         }
 
@@ -66,7 +66,7 @@ class UniversalAiAutomator(private val service: KingAccessibilityService) {
                             val targetIdx = json.optInt("target_id", 0)
                             if (targetIdx in clickableNodes.indices) {
                                 decisionCache[screenSig] = targetIdx
-                                GestureUtils.clickNode(clickableNodes[targetIdx])
+                                GestureUtils.clickNode(service, clickableNodes[targetIdx])
                                 service.updateWidgetStatus("Action: Clicked #$targetIdx")
                             }
                         } else if (action == "back") {
