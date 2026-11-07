@@ -1867,10 +1867,10 @@ def run(task="all", max_steps=1000, dry=False, poll=DEFAULT_POLL,
                 continue
 
             # 3. Check completion or repeated progress (install task trigger)
-            is_complete = is_watch_complete(nodes)
-            if is_complete or same_video_count >= 3:
+            is_watch_done = is_watch_complete(nodes)
+            if is_watch_done or same_video_count >= 3:
                 if not has_completed_video_install:
-                    reason = "All video tasks completed" if is_complete else "Progress repeated 3 times"
+                    reason = "All video tasks completed" if is_watch_done else "Progress repeated 3 times"
                     log(f"[WATCH VIDEO] {reason} ({p_str or '-'}) -> TRIGGERING FINAL INSTALL TASK!")
                     btn_watch = by_rid(nodes, "btn_watch_now") or find_button(nodes, {"play video", "watch video", "watch now"})
                     if btn_watch and btn_watch.click:
