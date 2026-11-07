@@ -73,6 +73,25 @@ class FloatingOverlayService : Service() {
             tvStatus.text = "Stopped"
         }
 
+        val btnCollapse = floatingView.findViewById<TextView>(R.id.btn_collapse)
+        val btnClose = floatingView.findViewById<TextView>(R.id.btn_close_widget)
+        val controlsContainer = floatingView.findViewById<View>(R.id.controls_container)
+
+        btnCollapse.setOnClickListener {
+            if (controlsContainer.visibility == View.VISIBLE) {
+                controlsContainer.visibility = View.GONE
+                btnCollapse.text = "➕"
+            } else {
+                controlsContainer.visibility = View.VISIBLE
+                btnCollapse.text = "➖"
+            }
+        }
+
+        btnClose.setOnClickListener {
+            KingAccessibilityService.instance?.stopAutomation()
+            stopSelf()
+        }
+
         btnMode.setOnClickListener {
             if (KingAccessibilityService.currentMode == "QUIZ") {
                 KingAccessibilityService.currentMode = "UNIVERSAL"
@@ -114,8 +133,13 @@ class FloatingOverlayService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        KingAccessibilityService.instance?.stopAutomation()
         if (::floatingView.isInitialized) {
-            windowManager.removeView(floatingView)
+            try {
+                windowManager.removeView(floatingView)
+            } catch (e: Exception) {
+                // View might already be detached
+            }
         }
         instance = null
     }

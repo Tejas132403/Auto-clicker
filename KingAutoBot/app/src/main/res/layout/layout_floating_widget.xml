@@ -32,8 +32,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="➖"
-            android:textSize="11sp"
-            android:padding="2dp" />
+            android:textColor="#B0BEC5"
+            android:textSize="12sp"
+            android:padding="3dp" />
+
+        <TextView
+            android:id="@+id/btn_close_widget"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="✖"
+            android:textColor="#FF5252"
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:padding="3dp" />
     </LinearLayout>
 
     <!-- Status Badge -->

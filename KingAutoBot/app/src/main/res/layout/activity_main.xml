@@ -161,5 +161,17 @@
             android:textSize="15sp"
             android:backgroundTint="#00E676" />
 
+        <Button
+            android:id="@+id/btn_stop_bot"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="32dp"
+            android:text="STOP BOT &amp; CLOSE CONTROLLER"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:backgroundTint="#D50000" />
+
     </LinearLayout>
 </ScrollView>

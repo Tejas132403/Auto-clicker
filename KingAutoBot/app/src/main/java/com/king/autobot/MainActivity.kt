@@ -21,6 +21,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnEnableAccessibility: Button
     private lateinit var btnEnableOverlay: Button
     private lateinit var btnLaunchWidget: Button
+    private lateinit var btnStopBot: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +32,7 @@ class MainActivity : AppCompatActivity() {
         btnEnableAccessibility = findViewById(R.id.btn_enable_accessibility)
         btnEnableOverlay = findViewById(R.id.btn_enable_overlay)
         btnLaunchWidget = findViewById(R.id.btn_launch_widget)
+        btnStopBot = findViewById(R.id.btn_stop_bot)
 
         // Initialize cache
         AnswerCacheManager.init(this)
@@ -73,6 +75,12 @@ class MainActivity : AppCompatActivity() {
             startService(intent)
             Toast.makeText(this, "Floating Controller Launched! Open any app and tap START", Toast.LENGTH_LONG).show()
             moveTaskToBack(true)
+        }
+
+        btnStopBot.setOnClickListener {
+            KingAccessibilityService.instance?.stopAutomation()
+            stopService(Intent(this, FloatingOverlayService::class.java))
+            Toast.makeText(this, "Bot Stopped & Floating Controller Closed!", Toast.LENGTH_SHORT).show()
         }
     }
 
