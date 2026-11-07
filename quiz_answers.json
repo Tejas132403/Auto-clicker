@@ -10,7 +10,7 @@
     "answer": "C",
     "answer_text": "Quick Message",
     "confidence": 1.0,
-    "time": "2026-11-07 12:46:06",
+    "time": "2026-11-07 14:22:10",
     "source": "GEMINI"
   },
   "q14ee5f01993d12e": {
@@ -23,8 +23,9 @@
     },
     "answer": "B",
     "answer_text": "Diamonds",
-    "confidence": 0.9,
-    "time": "2026-11-07 09:37:04"
+    "confidence": 1.0,
+    "time": "2026-11-07 14:22:50",
+    "source": "GEMINI"
   },
   "qf6d31427a3fe701": {
     "question": "Free Fire में खिलाड़ी के कपड़े बदलने के लिए क्या उपयोग होता है?",
@@ -36,8 +37,9 @@
     },
     "answer": "A",
     "answer_text": "Character Outfit",
-    "confidence": 0.9,
-    "time": "2026-11-07 09:38:12"
+    "confidence": 1.0,
+    "time": "2026-11-07 14:23:22",
+    "source": "GEMINI"
   },
   "q818284d17620ad9": {
     "question": "Free Fire में टीम के साथ खेलने वाले खिलाड़ियों को क्या कहते हैं?",
@@ -50,7 +52,7 @@
     "answer": "C",
     "answer_text": "Teammates",
     "confidence": 1.0,
-    "time": "2026-11-07 10:22:45",
+    "time": "2026-11-07 14:25:10",
     "source": "GEMINI"
   },
   "q8299feb392dadcd": {
@@ -64,7 +66,7 @@
     "answer": "A",
     "answer_text": "Player Nickname",
     "confidence": 1.0,
-    "time": "2026-11-07 10:23:30",
+    "time": "2026-11-07 14:25:13",
     "source": "GEMINI"
   },
   "qe6caae9d53fae83": {
@@ -93,7 +95,7 @@
     "answer_text": "Spectate",
     "confidence": 1.0,
     "source": "GEMINI",
-    "time": "2026-11-07 10:21:49"
+    "time": "2026-11-07 14:23:58"
   },
   "q8dabb36623d3c69": {
     "question": "Free Fire में Diamonds का इस्तेमाल किस लिए किया जाता है?",
@@ -105,9 +107,9 @@
     },
     "answer": "A",
     "answer_text": "Items खरीदने के लिए",
-    "confidence": 0.99,
+    "confidence": 1.0,
     "source": "GEMINI",
-    "time": "2026-11-07 10:24:15"
+    "time": "2026-11-07 14:25:47"
   },
   "q54664a81c99dc0d": {
     "question": "Free Fire में अच्छा खिलाड़ी बनने के लिए क्या जरूरी है?",
@@ -119,9 +121,9 @@
     },
     "answer": "A",
     "answer_text": "Practice",
-    "confidence": 0.99,
+    "confidence": 1.0,
     "source": "GEMINI",
-    "time": "2026-11-07 10:25:21"
+    "time": "2026-11-07 14:26:27"
   },
   "q7c9bfbaf16ee4ee": {
     "question": "Free Fire में Match शुरू होने से पहले खिलाड़ी कहाँ रहता है?",
@@ -135,7 +137,7 @@
     "answer_text": "Lobby",
     "confidence": 1.0,
     "source": "GEMINI",
-    "time": "2026-11-07 10:26:07"
+    "time": "2026-11-07 14:27:18"
   },
   "qd646125c6a19b15": {
     "question": "Free Fire में Rank बढ़ाने के लिए क्या जरूरी है?",

@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">King AutoBot</string>
+    <string name="accessibility_service_description">Autonomous AI Screen Automator and Task Clicker with zero-latency caching and universal app support.</string>
+</resources>

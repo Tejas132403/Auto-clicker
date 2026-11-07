@@ -20,9 +20,18 @@ ai_config.json
 # Logs & Temporary dumps
 *.log
 bot_log.txt
-*.xml
-_ui.xml
+/*.xml
+*_ui.xml
 window_dump.xml
+dump.xml
+dump_*.xml
+
+# Android Build Outputs & Caches
+KingAutoBot/**/build/
+KingAutoBot/.gradle/
+KingAutoBot/local.properties
+.gradle/
+build/
 
 # Screenshots & Media Captures
 *.png
