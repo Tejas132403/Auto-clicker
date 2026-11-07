@@ -1,0 +1,11 @@
+{
+  "name": "Smart AI Clicker",
+  "main": "main.js",
+  "ignore": [
+    "build"
+  ],
+  "packageName": "com.kingproject.smartclicker",
+  "versionName": "1.0.0",
+  "versionCode": 1,
+  "description": "Smart AI Auto-Clicker and Task Automator with Native UI and On-Device OCR"
+}

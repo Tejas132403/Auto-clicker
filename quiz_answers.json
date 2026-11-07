@@ -1,0 +1,322 @@
+{
+  "qbed4c20871b788a": {
+    "question": "Free Fire में टीम के सदस्य को जल्दी संदेश देने के लिए क्या उपयोगी है?",
+    "options": {
+      "A": "Screen Lock",
+      "B": "App Store",
+      "C": "Quick Message",
+      "D": "Battery Saver"
+    },
+    "answer": "C",
+    "answer_text": "Quick Message",
+    "confidence": 1.0,
+    "time": "2026-11-07 12:46:06",
+    "source": "GEMINI"
+  },
+  "q14ee5f01993d12e": {
+    "question": "Free Fire में गेम के अंदर वस्तुएँ खरीदने के लिए किसकी जरूरत पड़ सकती है?",
+    "options": {
+      "A": "Health Bar",
+      "B": "Diamonds",
+      "C": "Match Timer",
+      "D": "Map Pins"
+    },
+    "answer": "B",
+    "answer_text": "Diamonds",
+    "confidence": 0.9,
+    "time": "2026-11-07 09:37:04"
+  },
+  "qf6d31427a3fe701": {
+    "question": "Free Fire में खिलाड़ी के कपड़े बदलने के लिए क्या उपयोग होता है?",
+    "options": {
+      "A": "Character Outfit",
+      "B": "Network Setting",
+      "C": "Match Result",
+      "D": "Ping Meter"
+    },
+    "answer": "A",
+    "answer_text": "Character Outfit",
+    "confidence": 0.9,
+    "time": "2026-11-07 09:38:12"
+  },
+  "q818284d17620ad9": {
+    "question": "Free Fire में टीम के साथ खेलने वाले खिलाड़ियों को क्या कहते हैं?",
+    "options": {
+      "A": "Viewers",
+      "B": "Opponents",
+      "C": "Teammates",
+      "D": "Spectators"
+    },
+    "answer": "C",
+    "answer_text": "Teammates",
+    "confidence": 1.0,
+    "time": "2026-11-07 10:22:45",
+    "source": "GEMINI"
+  },
+  "q8299feb392dadcd": {
+    "question": "Free Fire में खिलाड़ी का नाम किससे पहचाना जाता है?",
+    "options": {
+      "A": "Player Nickname",
+      "B": "Gun Skin",
+      "C": "Match Time",
+      "D": "Map Code"
+    },
+    "answer": "A",
+    "answer_text": "Player Nickname",
+    "confidence": 1.0,
+    "time": "2026-11-07 10:23:30",
+    "source": "GEMINI"
+  },
+  "qe6caae9d53fae83": {
+    "question": "Duo में कितने खिलाड़ी होते हैं?",
+    "options": {
+      "A": "1",
+      "B": "2",
+      "C": "3",
+      "D": "4"
+    },
+    "answer": "B",
+    "answer_text": "2",
+    "confidence": 1.0,
+    "time": "2026-11-07 13:57:53",
+    "source": "GEMINI"
+  },
+  "q72c1036734bd5dd": {
+    "question": "Free Fire में मैच देखने के लिए बिना खेले कौन-सा विकल्प उपयोगी है?",
+    "options": {
+      "A": "Reload",
+      "B": "Sprint",
+      "C": "Loot",
+      "D": "Spectate"
+    },
+    "answer": "D",
+    "answer_text": "Spectate",
+    "confidence": 1.0,
+    "source": "GEMINI",
+    "time": "2026-11-07 10:21:49"
+  },
+  "q8dabb36623d3c69": {
+    "question": "Free Fire में Diamonds का इस्तेमाल किस लिए किया जाता है?",
+    "options": {
+      "A": "Items खरीदने के लिए",
+      "B": "HP बढ़ाने के लिए",
+      "C": "Gun चलाने के लिए",
+      "D": "Map खोलने के लिए"
+    },
+    "answer": "A",
+    "answer_text": "Items खरीदने के लिए",
+    "confidence": 0.99,
+    "source": "GEMINI",
+    "time": "2026-11-07 10:24:15"
+  },
+  "q54664a81c99dc0d": {
+    "question": "Free Fire में अच्छा खिलाड़ी बनने के लिए क्या जरूरी है?",
+    "options": {
+      "A": "Practice",
+      "B": "सिर्फ skins",
+      "C": "सिर्फ diamonds",
+      "D": "सिर्फ vehicles"
+    },
+    "answer": "A",
+    "answer_text": "Practice",
+    "confidence": 0.99,
+    "source": "GEMINI",
+    "time": "2026-11-07 10:25:21"
+  },
+  "q7c9bfbaf16ee4ee": {
+    "question": "Free Fire में Match शुरू होने से पहले खिलाड़ी कहाँ रहता है?",
+    "options": {
+      "A": "Lobby",
+      "B": "Safe Zone",
+      "C": "Training Ground",
+      "D": "Vehicle"
+    },
+    "answer": "A",
+    "answer_text": "Lobby",
+    "confidence": 1.0,
+    "source": "GEMINI",
+    "time": "2026-11-07 10:26:07"
+  },
+  "qd646125c6a19b15": {
+    "question": "Free Fire में Rank बढ़ाने के लिए क्या जरूरी है?",
+    "options": {
+      "A": "अच्छा performance",
+      "B": "सिर्फ game खोलना",
+      "C": "सिर्फ lobby में रहना",
+      "D": "फोन restart करना"
+    },
+    "answer": "A",
+    "answer_text": "अच्छा performance",
+    "confidence": 1.0,
+    "source": "GEMINI",
+    "time": "2026-11-07 12:36:46"
+  },
+  "q5cb3547f80b4fe1": {
+    "question": "Free Fire में Skin किस चीज का look बदल सकती है?",
+    "options": {
+      "A": "Character या Item",
+      "B": "Internet",
+      "C": "Phone",
+      "D": "Battery"
+    },
+    "answer": "A",
+    "answer_text": "Character या Item",
+    "confidence": 1.0,
+    "source": "GEMINI",
+    "time": "2026-11-07 12:39:59"
+  },
+  "q0c114606da99084": {
+    "question": "Free Fire में Backpack किस काम आता है?",
+    "options": {
+      "A": "Items रखने के लिए",
+      "B": "गोली चलाने के लिए",
+      "C": "Heal करने के लिए",
+      "D": "Vehicle चलाने के लिए"
+    },
+    "answer": "A",
+    "answer_text": "Items रखने के लिए",
+    "confidence": 1.0,
+    "source": "GEMINI",
+    "time": "2026-11-07 12:42:16"
+  },
+  "q971d09939226d58": {
+    "question": "Free Fire में Gun का इस्तेमाल किस लिए होता है?",
+    "options": {
+      "A": "दुश्मन पर attack करने के लिए",
+      "B": "Heal करने के लिए",
+      "C": "गाड़ी चलाने के लिए",
+      "D": "Map खोलने के लिए"
+    },
+    "answer": "A",
+    "answer_text": "दुश्मन पर attack करने के लिए",
+    "confidence": 1.0,
+    "source": "GEMINI",
+    "time": "2026-11-07 13:51:53"
+  },
+  "qa5a40ff6283fbbb": {
+    "question": "Free Fire में Loot कहाँ मिलता है?",
+    "options": {
+      "A": "Map पर",
+      "B": "सिर्फ Lobby में",
+      "C": "Settings में",
+      "D": "Loading Screen पर"
+    },
+    "answer": "A",
+    "answer_text": "Map पर",
+    "confidence": 1.0,
+    "source": "GEMINI",
+    "time": "2026-11-07 13:52:49"
+  },
+  "qbbf1eff01cb1968": {
+    "question": "Safe Zone से बाहर रहने पर क्या होता है?",
+    "options": {
+      "A": "Damage होता है",
+      "B": "HP बढ़ती है",
+      "C": "Speed बढ़ती है",
+      "D": "कोई असर नहीं"
+    },
+    "answer": "A",
+    "answer_text": "Damage होता है",
+    "confidence": 1.0,
+    "source": "GEMINI",
+    "time": "2026-11-07 13:53:31"
+  },
+  "q577b39939f4efbd": {
+    "question": "Free Fire में Character क्या होता है?",
+    "options": {
+      "A": "खिलाड़ी का गेम Avatar",
+      "B": "Gun",
+      "C": "Vehicle",
+      "D": "Map"
+    },
+    "answer": "A",
+    "answer_text": "खिलाड़ी का गेम Avatar",
+    "confidence": 0.99,
+    "source": "GEMINI",
+    "time": "2026-11-07 13:54:12"
+  },
+  "q09394a9293e3c77": {
+    "question": "Grenade का इस्तेमाल कैसे किया जाता है?",
+    "options": {
+      "A": "फेंककर",
+      "B": "खाकर",
+      "C": "पहनकर",
+      "D": "चलाकर"
+    },
+    "answer": "A",
+    "answer_text": "फेंककर",
+    "confidence": 1.0,
+    "source": "GEMINI",
+    "time": "2026-11-07 13:55:13"
+  },
+  "q82518ae81cdf64b": {
+    "question": "Free Fire में Ammo किस काम आता है?",
+    "options": {
+      "A": "Gun चलाने के लिए",
+      "B": "Heal करने के लिए",
+      "C": "दौड़ने के लिए",
+      "D": "Cover लेने के लिए"
+    },
+    "answer": "A",
+    "answer_text": "Gun चलाने के लिए",
+    "confidence": 1.0,
+    "source": "GEMINI",
+    "time": "2026-11-07 13:57:12"
+  },
+  "q66c508789176f86": {
+    "question": "Solo में कितने खिलाड़ी की टीम होती है?",
+    "options": {
+      "A": "1",
+      "B": "2",
+      "C": "3",
+      "D": "4"
+    },
+    "answer": "A",
+    "answer_text": "1",
+    "confidence": 1.0,
+    "source": "GEMINI",
+    "time": "2026-11-07 13:58:36"
+  },
+  "qd70641741bfaf01": {
+    "question": "Headshot किसे कहते हैं?",
+    "options": {
+      "A": "सिर पर गोली लगना",
+      "B": "पैर पर गोली लगना",
+      "C": "हाथ पर गोली लगना",
+      "D": "शरीर पर गोली लगना"
+    },
+    "answer": "A",
+    "answer_text": "सिर पर गोली लगना",
+    "confidence": 1.0,
+    "source": "GEMINI",
+    "time": "2026-11-07 13:59:22"
+  },
+  "q46389e51bff682d": {
+    "question": "Med Kit का इस्तेमाल किस लिए होता है?",
+    "options": {
+      "A": "HP बढ़ाने के लिए",
+      "B": "Ammo बढ़ाने के लिए",
+      "C": "Speed बढ़ाने के लिए",
+      "D": "Damage बढ़ाने के लिए"
+    },
+    "answer": "A",
+    "answer_text": "HP बढ़ाने के लिए",
+    "confidence": 1.0,
+    "source": "GEMINI",
+    "time": "2026-11-07 14:00:46"
+  },
+  "qc0181fc62d5c412": {
+    "question": "Free Fire में खिलाड़ी शुरुआत में कहाँ से jump करता है?",
+    "options": {
+      "A": "विमान",
+      "B": "नाव",
+      "C": "कार",
+      "D": "ट्रेन"
+    },
+    "answer": "A",
+    "answer_text": "विमान",
+    "confidence": 0.99,
+    "source": "GEMINI",
+    "time": "2026-11-07 14:01:31"
+  }
+}

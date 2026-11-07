@@ -1,0 +1,8 @@
+{
+  "triggerKeywords": ["?", "quiz", "quize", "Question", "Q."],
+  "actionButtons": ["Submit", "Add", "Next", "Continue", "Confirm", "Claim", "Done"],
+  "pollIntervalSeconds": 1.0,
+  "autoAnswerQuiz": true,
+  "optionsPrefixes": ["A", "B", "C", "D"],
+  "searchBackend": "duckduckgo"
+}

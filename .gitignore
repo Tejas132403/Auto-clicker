@@ -1,0 +1,39 @@
+# Virtual Environments
+.venv/
+.venv2/
+venv/
+env/
+
+# Python cache & build
+__pycache__/
+*.py[cod]
+*$py.class
+.dist/
+.freebuff/
+tmp_build/
+scratch/
+pyc_strings/
+
+# Sensitive Configuration (API Keys & Secrets)
+ai_config.json
+
+# Logs & Temporary dumps
+*.log
+bot_log.txt
+*.xml
+_ui.xml
+window_dump.xml
+
+# Screenshots & Media Captures
+*.png
+*.jpg
+*.jpeg
+
+# Android Binaries & Packages
+*.apk
+*.idsig
+*.zip
+*.keystore
+
+# Node modules
+node_modules/
