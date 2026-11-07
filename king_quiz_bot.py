@@ -1556,6 +1556,7 @@ def run(task="all", max_steps=1000, dry=False, poll=DEFAULT_POLL,
     last_watch_p_str = ""
     last_watch_completed_progress = None
     same_video_count = 0
+    has_completed_video_install = False
     answered_sig = None
     answered_at = 0.0
     pending = None
@@ -1840,11 +1841,8 @@ def run(task="all", max_steps=1000, dry=False, poll=DEFAULT_POLL,
         # =================================================================== #
         if is_watch_screen(nodes, focus_act):
             cur, tot, p_str = get_watch_progress(nodes)
-            if is_watch_complete(nodes):
-                log(f"[WATCH VIDEO COMPLETE] All videos completed ({p_str or '20/20'})! Tasks 100% finished.")
-                break
 
-            # Countdown timer in Watch Video
+            # 1. Countdown timer in Watch Video
             timer = by_rid(nodes, "timerText")
             if not timer:
                 for n in nodes:
@@ -1856,21 +1854,46 @@ def run(task="all", max_steps=1000, dry=False, poll=DEFAULT_POLL,
                 time.sleep(1.0)
                 continue
 
-            # Check if Play Video button is present
-            btn_watch = by_rid(nodes, "btn_watch_now")
-            if btn_watch and btn_watch.click:
-                if same_video_count >= 3:
-                    log(f"[WATCH VIDEO] Progress '{p_str}' repeated 3 times -> INSTALL TASK DETECTED!")
-                    log(f"[INSTALL TASK] 4th attempt: Tapping 'Play Video' at {btn_watch.click} to trigger Ad...")
-                    if not dry:
-                        tap(*btn_watch.click)
-                        time.sleep(1.0)
-                        execute_full_install_sequence(dry=dry, ad_max=ad_max, poll=poll)
-                    same_video_count = 0
-                    last_watch_completed_progress = None
-                    time.sleep(ACTION_SETTLE)
-                    continue
+            # 2. Add Bonus / Claim dialog
+            bonus = find_bonus(nodes)
+            if bonus and bonus.click:
+                log(f"[WATCH VIDEO] Bonus button '{bonus.label}' -> tap")
+                if not dry:
+                    tap(*bonus.click)
+                    time.sleep(1.0)
+                    handle_ad(None, dry=dry, max_seconds=ad_max, poll=poll)
+                idle = 0
+                time.sleep(ACTION_SETTLE)
+                continue
 
+            # 3. Check completion or repeated progress (install task trigger)
+            is_complete = is_watch_complete(nodes)
+            if is_complete or same_video_count >= 3:
+                if not has_completed_video_install:
+                    reason = "All video tasks completed" if is_complete else "Progress repeated 3 times"
+                    log(f"[WATCH VIDEO] {reason} ({p_str or '-'}) -> TRIGGERING FINAL INSTALL TASK!")
+                    btn_watch = by_rid(nodes, "btn_watch_now") or find_button(nodes, {"play video", "watch video", "watch now"})
+                    if btn_watch and btn_watch.click:
+                        log(f"[WATCH VIDEO INSTALL TASK] Tapping final video button at {btn_watch.click} to trigger Ad...")
+                        if not dry:
+                            tap(*btn_watch.click)
+                            time.sleep(1.0)
+                            execute_full_install_sequence(dry=dry, ad_max=ad_max, poll=poll)
+                        has_completed_video_install = True
+                        same_video_count = 0
+                        last_watch_completed_progress = None
+                        idle = 0
+                        time.sleep(ACTION_SETTLE)
+                        continue
+                    else:
+                        log(f"[WATCH VIDEO INSTALL TASK] 'Play Video' button not found yet, checking other dialog buttons...")
+                else:
+                    log(f"[WATCH VIDEO COMPLETE] All videos completed ({p_str or '20/20'}) and Final Install Task verified! All tasks 100% finished.")
+                    break
+
+            # 4. Check if Play Video button is present (regular video watch step)
+            btn_watch = by_rid(nodes, "btn_watch_now") or find_button(nodes, {"play video", "watch video", "watch now"})
+            if btn_watch and btn_watch.click:
                 log(f"[WATCH VIDEO] Tapping 'Play Video' (Progress: {p_str or '-'}) ...")
                 if not dry:
                     tap(*btn_watch.click)
@@ -1889,15 +1912,8 @@ def run(task="all", max_steps=1000, dry=False, poll=DEFAULT_POLL,
                 idle = 0
                 time.sleep(ACTION_SETTLE)
                 continue
-                if not dry:
-                    tap(*btn_watch.click)
-                    time.sleep(1.0)
-                    handle_ad(dump_nodes(), dry=dry, max_seconds=ad_max, poll=poll)
-                idle = 0
-                time.sleep(ACTION_SETTLE)
-                continue
 
-            # Intermediate claim / collect / OK dialogs
+            # 5. Intermediate claim / collect / OK dialogs
             nxt = find_button(nodes, NEXT_WORDS)
             if nxt and nxt.click:
                 log(f"[WATCH VIDEO] Dialog button '{nxt.label}' -> tap")

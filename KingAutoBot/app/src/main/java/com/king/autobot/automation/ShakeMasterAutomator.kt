@@ -35,6 +35,8 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
 
     private var sameTaskCount = 0
     private var lastTaskSignature = ""
+    private var sameVideoCount = 0
+    private var lastVideoSignature = ""
     private var isHandlingInstall = false
 
     fun onScreenUpdated(rootNode: AccessibilityNodeInfo?, currentPkg: String) {
@@ -46,6 +48,9 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
             service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
             return
         }
+
+        // If install flow is actively executing, let it finish uninterrupted
+        if (isHandlingInstall) return
 
         // 2. Check for 'Add Bonus' / Completion button FIRST!
         val bonusBtn = findButton(rootNode, setOf("add bonus", "bonus", "claim", "continue", "done", "next", "ok"))
@@ -65,16 +70,29 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
         // Only process if Shake Master is active
         if (currentPkg != TARGET_PKG) return
 
-        // 4. Check for 'Watch Video' button
-        val videoBtn = findButton(rootNode, setOf("watch video", "watch", "play video"))
-        if (videoBtn != null) {
-            Log.d(TAG, "Tapping watch video button")
-            service.updateWidgetStatus("Watching Video...")
-            GestureUtils.clickNode(service, videoBtn)
+        // 4. Check for active countdown timer ("Wait 10 sec...")
+        if (isCountdownActive(rootNode)) {
+            service.updateWidgetStatus("Waiting countdown timer...")
             return
         }
 
-        // 5. Check for Quiz Screen (must have 2+ options)
+        // 5. Watch Video Screen Handling (Play Video / Final Video Install Task)
+        val watchBtn = findWatchVideoButton(rootNode)
+        if (watchBtn != null) {
+            handleWatchVideoScreen(rootNode, watchBtn)
+            return
+        }
+
+        // 6. Home Screen Navigation (if Quiz is finished, enter Watch Video)
+        val watchCard = findWatchVideoCard(rootNode)
+        if (watchCard != null && isQuizFinished(rootNode)) {
+            Log.d(TAG, "Quiz finished! Entering Watch Video section...")
+            service.updateWidgetStatus("Entering Watch Video...")
+            GestureUtils.clickNode(service, watchCard)
+            return
+        }
+
+        // 7. Check for Quiz Screen (must have 2+ options)
         val options = findOptionNodes(rootNode)
         if (options.size >= 2) {
             val questionNode = findQuestionNode(rootNode)
@@ -86,6 +104,42 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
                 }
             }
         }
+    }
+
+    private fun handleWatchVideoScreen(rootNode: AccessibilityNodeInfo, watchBtn: AccessibilityNodeInfo) {
+        val isComplete = isWatchVideoComplete(rootNode)
+        val pStr = getWatchProgressString(rootNode)
+
+        // Track repeat progress on Video screen
+        if (pStr.isNotEmpty() && pStr == lastVideoSignature) {
+            sameVideoCount++
+            Log.d(TAG, "Watch Video progress '$pStr' repeated $sameVideoCount times")
+        } else {
+            sameVideoCount = 1
+            if (pStr.isNotEmpty()) lastVideoSignature = pStr
+        }
+
+        // If all video tasks are complete OR repeated 3 times -> FINAL VIDEO INSTALL TASK!
+        if ((isComplete || sameVideoCount >= 3) && !isHandlingInstall) {
+            Log.d(TAG, "[WATCH VIDEO] Complete ($pStr) / Repeat ($sameVideoCount) -> FINAL VIDEO INSTALL TASK!")
+            service.updateWidgetStatus("Final Video Install Task...")
+
+            // 1. Click final video button to trigger ad
+            GestureUtils.clickNode(service, watchBtn)
+
+            // 2. Run full install sequence (Home -> wait 10s -> Recents -> cut ad -> claim bonus)
+            executeInstallSequence {
+                Log.d(TAG, "[WATCH VIDEO] Install sequence finished!")
+                sameVideoCount = 0
+                lastVideoSignature = ""
+            }
+            return
+        }
+
+        // Normal video task: tap Play Video
+        Log.d(TAG, "[WATCH VIDEO] Tapping Play Video ($pStr)...")
+        service.updateWidgetStatus("Watching Video ($pStr)...")
+        GestureUtils.clickNode(service, watchBtn)
     }
 
     private fun handleQuizScreen(rootNode: AccessibilityNodeInfo, qText: String, options: List<AccessibilityNodeInfo>) {
@@ -106,8 +160,26 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
         // If repeated 3 times, attempt 4 is an Install Task!
         if (sameTaskCount >= 3 && !isHandlingInstall) {
             Log.d(TAG, "Repeat threshold reached ($sameTaskCount). Triggering Install Task flow!")
-            isHandlingInstall = true
-            executeInstallTaskFlow(qText, options, optTexts)
+
+            // 1. Give answer
+            val answer = AnswerCacheManager.lookup(qText) ?: optTexts.firstOrNull() ?: ""
+            val targetNode = findBestOptionNode(options, answer)
+            if (targetNode != null) GestureUtils.clickNode(service, targetNode)
+
+            // 2. Wait 1.5s then tap 'Add Bonus' to trigger ad
+            handler.postDelayed({
+                val root = service.rootInActiveWindow
+                if (root != null) {
+                    val bonusBtn = findButton(root, setOf("add bonus", "bonus"))
+                    if (bonusBtn != null) GestureUtils.clickNode(service, bonusBtn)
+                }
+
+                // 3. Execute full install sequence
+                executeInstallSequence {
+                    sameTaskCount = 0
+                    lastTaskSignature = ""
+                }
+            }, 1500)
             return
         }
 
@@ -139,50 +211,55 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
         }
     }
 
-    private fun executeInstallTaskFlow(qText: String, options: List<AccessibilityNodeInfo>, optTexts: List<String>) {
-        service.updateWidgetStatus("Install Task Flow...")
-        // 1. Give answer
-        val answer = AnswerCacheManager.lookup(qText) ?: optTexts.firstOrNull() ?: ""
-        val targetNode = findBestOptionNode(options, answer)
-        if (targetNode != null) GestureUtils.clickNode(service, targetNode)
+    private fun executeInstallSequence(onComplete: (() -> Unit)? = null) {
+        service.updateWidgetStatus("Install Flow: Waiting Ad...")
+        isHandlingInstall = true
 
-        // 2. Wait 1.5s then tap 'Add Bonus'
+        // 1. Wait 2.5s for ad to open, then go to Home screen
         handler.postDelayed({
-            val root = service.rootInActiveWindow ?: return@postDelayed
-            val bonusBtn = findButton(root, setOf("add bonus", "bonus"))
-            if (bonusBtn != null) GestureUtils.clickNode(service, bonusBtn)
+            service.updateWidgetStatus("Install Flow: Home Screen...")
+            service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME)
 
-            // 3. Go to Home Screen after ad starts
+            // 2. Wait 10 seconds on home screen (simulating install wait)
             handler.postDelayed({
-                service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME)
+                service.updateWidgetStatus("Install Flow: Recents...")
+                // 3. Open Recents overview
+                service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)
 
-                // 4. Wait 10 seconds (simulating dummy app open/wait)
+                // 4. In Recents, tap center snapshot to resume Shake Master without cold restart
                 handler.postDelayed({
-                    // 5. Open Recents overview
-                    service.updateWidgetStatus("Resuming from Recents...")
-                    service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)
+                    val displayMetrics = service.resources.displayMetrics
+                    val cx = (displayMetrics.widthPixels / 2).toFloat()
+                    val cy = (displayMetrics.heightPixels * 0.479f)
 
-                    // 6. In Recents, tap center snapshot to resume Shake Master without cold restart
-                    handler.postDelayed({
-                        val displayMetrics = service.resources.displayMetrics
-                        val cx = (displayMetrics.widthPixels / 2).toFloat()
-                        val cy = (displayMetrics.heightPixels * 0.479f)
+                    GestureUtils.tap(service, cx, cy) {
+                        Log.d(TAG, "Tapped snapshot in Recents. Shake Master resumed!")
+                        service.updateWidgetStatus("Resumed! Cutting ad...")
 
-                        GestureUtils.tap(service, cx, cy) {
-                            Log.d(TAG, "Tapped snapshot in Recents. Shake Master resumed!")
-                            service.updateWidgetStatus("Resumed! Cutting ad...")
+                        // 5. Cut ad
+                        handler.postDelayed({
+                            service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
 
-                            // 7. Cut ad and claim bonus
+                            // 6. Wait 1.2s to claim bonus if popup appears
                             handler.postDelayed({
-                                service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
+                                val root = service.rootInActiveWindow
+                                if (root != null) {
+                                    val bonus = findButton(root, setOf("add bonus", "bonus", "claim", "continue", "done"))
+                                    if (bonus != null) {
+                                        GestureUtils.clickNode(service, bonus)
+                                    }
+                                }
                                 isHandlingInstall = false
                                 sameTaskCount = 0
-                            }, 1500)
-                        }
-                    }, 1000)
-                }, 10000)
-            }, 3000)
-        }, 1500)
+                                sameVideoCount = 0
+                                service.updateWidgetStatus("Install Task Complete!")
+                                onComplete?.invoke()
+                            }, 1200)
+                        }, 1500)
+                    }
+                }, 1000)
+            }, 10000)
+        }, 2500)
     }
 
     private fun dismissAd(rootNode: AccessibilityNodeInfo) {
@@ -287,6 +364,82 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
             if (normAns.length == 1 && combined.contains("${normAns}.")) return opt
         }
         return options.firstOrNull()
+    }
+
+    private fun isCountdownActive(root: AccessibilityNodeInfo): Boolean {
+        val texts = mutableListOf<String>()
+        collectAllText(root, texts)
+        return texts.any { it.contains("Wait", ignoreCase = true) && it.contains("sec", ignoreCase = true) }
+    }
+
+    private fun getWatchProgressString(root: AccessibilityNodeInfo): String {
+        val nodes = mutableListOf<AccessibilityNodeInfo>()
+        collectTextNodes(root, nodes)
+        val rem = nodes.firstOrNull { it.viewIdResourceName?.contains("progress_remaining_count") == true }?.text?.toString()?.replace("/", "")?.trim() ?: ""
+        val tot = nodes.firstOrNull { it.viewIdResourceName?.contains("progress_count") == true }?.text?.toString()?.trim() ?: ""
+        if (rem.isNotEmpty() && tot.isNotEmpty()) {
+            return "$rem/$tot"
+        }
+        for (n in nodes) {
+            val t = n.text?.toString() ?: ""
+            val m = Regex("(\\d+)\\s*/\\s*(\\d+)").find(t)
+            if (m != null) return m.value
+        }
+        return ""
+    }
+
+    private fun isWatchVideoComplete(root: AccessibilityNodeInfo): Boolean {
+        val pStr = getWatchProgressString(root)
+        if (pStr.isNotEmpty()) {
+            val parts = pStr.split("/")
+            if (parts.size == 2) {
+                val cur = parts[0].trim().toIntOrNull()
+                val tot = parts[1].trim().toIntOrNull()
+                if (cur != null && tot != null && cur >= tot && tot > 0) return true
+            }
+        }
+        val texts = mutableListOf<String>()
+        collectAllText(root, texts)
+        return texts.any {
+            val l = it.lowercase().trim()
+            l.contains("0 more videos") ||
+            l.contains("watch 0 more") ||
+            l.contains("all videos completed") ||
+            l.contains("come back tomorrow") ||
+            l.contains("limit reached")
+        }
+    }
+
+    private fun findWatchVideoButton(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
+        val clickable = mutableListOf<AccessibilityNodeInfo>()
+        collectClickableNodes(root, clickable)
+        for (n in clickable) {
+            val resId = n.viewIdResourceName ?: ""
+            if (resId.contains("btn_watch_now")) return n
+            val t = (n.text?.toString() ?: n.contentDescription?.toString() ?: "").lowercase().trim()
+            if (t == "play video" || t == "watch video" || t == "watch now") return n
+        }
+        return null
+    }
+
+    private fun findWatchVideoCard(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
+        val clickable = mutableListOf<AccessibilityNodeInfo>()
+        collectClickableNodes(root, clickable)
+        for (n in clickable) {
+            val resId = n.viewIdResourceName ?: ""
+            if (resId.contains("clWatchVideo")) return n
+            val t = (n.text?.toString() ?: n.contentDescription?.toString() ?: "").lowercase().trim()
+            if (t.contains("watch video") || t.contains("watch & earn")) return n
+        }
+        return null
+    }
+
+    private fun isQuizFinished(root: AccessibilityNodeInfo): Boolean {
+        val texts = mutableListOf<String>()
+        collectAllText(root, texts)
+        return texts.any {
+            it.contains("25/25") || it.contains("0/25") || it.contains("quiz completed", ignoreCase = true)
+        }
     }
 
     private fun findButton(root: AccessibilityNodeInfo, words: Set<String>): AccessibilityNodeInfo? {
