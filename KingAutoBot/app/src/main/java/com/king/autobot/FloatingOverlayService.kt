@@ -12,6 +12,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 
 class FloatingOverlayService : Service() {
     companion object {
@@ -64,8 +65,18 @@ class FloatingOverlayService : Service() {
         btnMode = floatingView.findViewById(R.id.btn_mode)
 
         btnStart.setOnClickListener {
-            KingAccessibilityService.instance?.startAutomation()
-            tvStatus.text = "Running (${KingAccessibilityService.currentMode})..."
+            val a11y = KingAccessibilityService.instance
+            if (a11y != null) {
+                a11y.startAutomation()
+                tvStatus.text = "Running (${KingAccessibilityService.currentMode})..."
+            } else {
+                tvStatus.text = "Error: Enable Accessibility!"
+                Toast.makeText(this, "Please enable 'King AutoBot' in Accessibility Settings!", Toast.LENGTH_LONG).show()
+                val intent = Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                startActivity(intent)
+            }
         }
 
         btnStop.setOnClickListener {

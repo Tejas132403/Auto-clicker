@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.content.Intent
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
 import com.king.autobot.ai.AnswerCacheManager
 import com.king.autobot.ai.GeminiApiClient
 import com.king.autobot.automation.ShakeMasterAutomator
@@ -39,6 +40,19 @@ class KingAccessibilityService : AccessibilityService() {
         updateWidgetStatus("Service Ready! Tap START")
     }
 
+    private var lastProcessTime = 0L
+
+    fun processScreen(root: AccessibilityNodeInfo, pkg: String) {
+        val now = System.currentTimeMillis()
+        if (now - lastProcessTime < 700) return
+        lastProcessTime = now
+
+        when (currentMode) {
+            "QUIZ" -> shakeMasterAutomator.onScreenUpdated(root, pkg)
+            "UNIVERSAL" -> universalAiAutomator.onScreenUpdated(root, pkg)
+        }
+    }
+
     fun startAutomation() {
         isRunning = true
         scanJob?.cancel()
@@ -48,15 +62,12 @@ class KingAccessibilityService : AccessibilityService() {
                     val root = rootInActiveWindow
                     if (root != null) {
                         val pkg = root.packageName?.toString() ?: ""
-                        when (currentMode) {
-                            "QUIZ" -> shakeMasterAutomator.onScreenUpdated(root, pkg)
-                            "UNIVERSAL" -> universalAiAutomator.onScreenUpdated(root, pkg)
-                        }
+                        processScreen(root, pkg)
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error in periodic scan: ${e.message}")
                 }
-                delay(1200)
+                delay(1000)
             }
         }
     }
@@ -74,10 +85,7 @@ class KingAccessibilityService : AccessibilityService() {
         val currentPkg = event.packageName?.toString() ?: ""
         val rootNode = rootInActiveWindow ?: return
 
-        when (currentMode) {
-            "QUIZ" -> shakeMasterAutomator.onScreenUpdated(rootNode, currentPkg)
-            "UNIVERSAL" -> universalAiAutomator.onScreenUpdated(rootNode, currentPkg)
-        }
+        processScreen(rootNode, currentPkg)
     }
 
     override fun onInterrupt() {

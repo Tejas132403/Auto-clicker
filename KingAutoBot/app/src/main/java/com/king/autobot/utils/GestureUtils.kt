@@ -10,21 +10,32 @@ import android.view.accessibility.AccessibilityNodeInfo
 object GestureUtils {
     private const val TAG = "GestureUtils"
 
+    @Volatile
+    private var isGestureRunning = false
+
     fun tap(service: AccessibilityService, x: Float, y: Float, callback: (() -> Unit)? = null) {
+        if (isGestureRunning) {
+            Log.w(TAG, "Gesture already in progress, skipping tap at ($x, $y)")
+            return
+        }
+        isGestureRunning = true
+
         val path = Path().apply {
             moveTo(x, y)
         }
-        val stroke = GestureDescription.StrokeDescription(path, 0, 50)
+        val stroke = GestureDescription.StrokeDescription(path, 0, 80)
         val gesture = GestureDescription.Builder().addStroke(stroke).build()
 
         service.dispatchGesture(gesture, object : AccessibilityService.GestureResultCallback() {
             override fun onCompleted(gestureDescription: GestureDescription?) {
                 super.onCompleted(gestureDescription)
+                isGestureRunning = false
                 callback?.invoke()
             }
 
             override fun onCancelled(gestureDescription: GestureDescription?) {
                 super.onCancelled(gestureDescription)
+                isGestureRunning = false
                 Log.w(TAG, "Tap at ($x, $y) cancelled")
             }
         }, null)
@@ -37,6 +48,9 @@ object GestureUtils {
         durationMs: Long = 300,
         callback: (() -> Unit)? = null
     ) {
+        if (isGestureRunning) return
+        isGestureRunning = true
+
         val path = Path().apply {
             moveTo(x1, y1)
             lineTo(x2, y2)
@@ -47,34 +61,43 @@ object GestureUtils {
         service.dispatchGesture(gesture, object : AccessibilityService.GestureResultCallback() {
             override fun onCompleted(gestureDescription: GestureDescription?) {
                 super.onCompleted(gestureDescription)
+                isGestureRunning = false
                 callback?.invoke()
             }
 
             override fun onCancelled(gestureDescription: GestureDescription?) {
                 super.onCancelled(gestureDescription)
+                isGestureRunning = false
                 Log.w(TAG, "Swipe from ($x1,$y1) to ($x2,$y2) cancelled")
             }
         }, null)
     }
 
     fun clickNode(service: AccessibilityService, node: AccessibilityNodeInfo): Boolean {
-        // Try direct click action
+        // 1. Direct accessibility click action (instant, reliable, cannot conflict)
         if (node.isClickable && node.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+            Log.d(TAG, "Direct ACTION_CLICK succeeded on: ${node.text} / ${node.viewIdResourceName}")
             return true
         }
-        // Try clickable parent
+
+        // 2. Clickable parent
         var parent = node.parent
         while (parent != null) {
             if (parent.isClickable && parent.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+                Log.d(TAG, "Parent ACTION_CLICK succeeded on: ${parent.viewIdResourceName}")
                 return true
             }
             parent = parent.parent
         }
-        // Fallback to coordinate tap dispatch
+
+        // 3. Fallback to physical coordinate tap dispatch
         val rect = Rect()
         node.getBoundsInScreen(rect)
         if (rect.width() > 0 && rect.height() > 0) {
-            tap(service, rect.centerX().toFloat(), rect.centerY().toFloat())
+            val cx = rect.centerX().toFloat()
+            val cy = rect.centerY().toFloat()
+            Log.d(TAG, "Dispatching coordinate tap at ($cx, $cy)")
+            tap(service, cx, cy)
             return true
         }
         return false

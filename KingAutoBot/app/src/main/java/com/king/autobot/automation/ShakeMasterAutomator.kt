@@ -47,7 +47,16 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
             return
         }
 
-        // 2. Ad Handling (AdActivity / fullscreen ad)
+        // 2. Check for 'Add Bonus' / Completion button FIRST!
+        val bonusBtn = findButton(rootNode, setOf("add bonus", "bonus", "claim", "continue", "done", "next", "ok"))
+        if (bonusBtn != null) {
+            Log.d(TAG, "Tapping bonus/claim button: ${bonusBtn.text}")
+            service.updateWidgetStatus("Claiming Bonus...")
+            GestureUtils.clickNode(service, bonusBtn)
+            return
+        }
+
+        // 3. Ad Handling (AdActivity / fullscreen ad)
         if (currentPkg.contains("gms.ads") || isAdScreen(rootNode)) {
             dismissAd(rootNode)
             return
@@ -56,35 +65,30 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
         // Only process if Shake Master is active
         if (currentPkg != TARGET_PKG) return
 
-        // 3. Check for Quiz Screen
-        val questionNode = findQuestionNode(rootNode)
-        if (questionNode != null) {
-            val qText = questionNode.text?.toString()?.trim() ?: ""
-            if (qText.length > 5) {
-                handleQuizScreen(rootNode, qText)
-                return
-            }
-        }
-
-        // 4. Check for 'Add Bonus' / Completion button
-        val bonusBtn = findButton(rootNode, setOf("add bonus", "bonus", "claim", "continue", "done", "next", "ok"))
-        if (bonusBtn != null) {
-            Log.d(TAG, "Tapping bonus/claim button: ${bonusBtn.text}")
-            GestureUtils.clickNode(service, bonusBtn)
-            return
-        }
-
-        // 5. Check for 'Watch Video' button
+        // 4. Check for 'Watch Video' button
         val videoBtn = findButton(rootNode, setOf("watch video", "watch", "play video"))
         if (videoBtn != null) {
             Log.d(TAG, "Tapping watch video button")
+            service.updateWidgetStatus("Watching Video...")
             GestureUtils.clickNode(service, videoBtn)
             return
         }
+
+        // 5. Check for Quiz Screen (must have 2+ options)
+        val options = findOptionNodes(rootNode)
+        if (options.size >= 2) {
+            val questionNode = findQuestionNode(rootNode)
+            if (questionNode != null) {
+                val qText = questionNode.text?.toString()?.trim() ?: ""
+                if (qText.length > 5) {
+                    handleQuizScreen(rootNode, qText, options)
+                    return
+                }
+            }
+        }
     }
 
-    private fun handleQuizScreen(rootNode: AccessibilityNodeInfo, qText: String) {
-        val options = findOptionNodes(rootNode)
+    private fun handleQuizScreen(rootNode: AccessibilityNodeInfo, qText: String, options: List<AccessibilityNodeInfo>) {
         if (options.isEmpty()) return
 
         val optTexts = options.mapNotNull { it.text?.toString()?.trim() }.filter { it.isNotEmpty() }
@@ -203,7 +207,19 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
     private fun isAdScreen(root: AccessibilityNodeInfo): Boolean {
         val list = mutableListOf<String>()
         collectAllText(root, list)
-        return list.any { it.contains("reward in", true) || it.contains("ad", true) || it.contains("sponsored", true) }
+        val combined = list.joinToString(" ").lowercase()
+        if (combined.contains("bonus") || combined.contains("quiz") || combined.contains("option")) {
+            return false
+        }
+
+        return list.any { raw ->
+            val t = raw.lowercase().trim()
+            t == "ad" ||
+            t.startsWith("ad ") ||
+            t.contains("advertisement") ||
+            t.contains("sponsored") ||
+            t.contains("video will end in")
+        }
     }
 
     private fun findCloseButton(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
@@ -227,7 +243,7 @@ class ShakeMasterAutomator(private val service: KingAccessibilityService) {
         }
         for (n in allTexts) {
             val t = n.text?.toString()?.trim() ?: ""
-            if (t.endsWith("?") || t.length in 12..150) {
+            if (t.contains("?") || t.contains("Free Fire") || (t.length in 15..120 && !t.contains("Click Below") && !t.contains("Bonus Coins"))) {
                 return n
             }
         }
